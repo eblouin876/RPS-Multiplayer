@@ -54,7 +54,7 @@ function addUser(player) {
             db.collection("users").doc(player.id).update({
                 id: player.id
             })
-            localStorage.setItem("Id", player.id)
+            sessionStorage.setItem("Id", player.id)
         })
         .catch(function (error) {
             console.error("Error adding document: ", error);
@@ -129,6 +129,14 @@ function getGame(id) {
         })
 }
 
+function remove() {
+    let id = sessionStorage.getItem("Id")
+    db.collection('users').doc(id).get()
+        .then(function (querySnapshot) {
+            querySnapshot.ref.delete();
+        });
+};
+
 
 // Visual update functions
 function updatePlayerList() {
@@ -166,6 +174,9 @@ $(document).ready(() => {
                 let newPlayer = new Player(val.name, val.id, val.wins, val.losses)
                 allPlayers.push(newPlayer)
             }
+            if (change.type === `removed`) {
+                console.log(change.doc.data())
+            }
         })
         init = false;
         updatePlayerList()
@@ -190,7 +201,9 @@ $("#start-button").on('click', (event) => {
 
 })
 
-
+window.addEventListener('unload', function (e) {
+    remove()
+});
 
 
 
