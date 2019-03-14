@@ -3,6 +3,25 @@ let allPlayers = []
 let allGames = []
 
 
+// Classes
+class Game {
+    constructor(player1, player2) {
+        this.player1 = player1;
+        this.player2 = player2;
+    }
+}
+
+class Player {
+    constructor(name, id = "", wins = 0, losses = 0) {
+        this.name = name;
+        this.id = id;
+        this.wins = wins;
+        this.losses = losses;
+    }
+
+}
+
+
 // Firebase functions
 function initDatabase() {
     let config = {
@@ -17,7 +36,6 @@ function initDatabase() {
         .initializeApp(config)
         .auth().signInAnonymously()
         .then(function () {
-            console.log('Logged in as Anonymous!')
 
         }).catch(function (error) {
             var errorCode = error.code;
@@ -29,11 +47,14 @@ function initDatabase() {
 }
 
 function addUser(player) {
-    db.collection("users").add({
-            Player: player
-        })
+    playerObj = JSON.parse(JSON.stringify(player))
+    db.collection("users").add(playerObj)
         .then(function (docRef) {
-            console.log("Document written with ID: ", docRef.id);
+            player.id = docRef.id
+            db.collection("users").doc(player.id).update({
+                id: player.id
+            })
+            localStorage.setItem("Id", player.id)
         })
         .catch(function (error) {
             console.error("Error adding document: ", error);
@@ -61,19 +82,26 @@ function getUser(id) {
         })
 }
 
-function gameListener(gameId) {
+function addGameListener(gameId) {
     return db.collection("games").doc(gameId)
         .onSnapshot((doc) => {
             console.log("Current data: ", doc.data());
         })
 }
 
+function removeGameListener(gameId) {
+    db.collection("games").doc(gameId)
+        .onSnapshot(() => {})
+}
+
 function addGame(game) {
-    db.collection("games").add({
-            game: game,
-        })
+    let gameObj = JSON.parse(JSON.stringify(game))
+    db.collection("games").add(gameObj)
         .then(function (docRef) {
-            console.log("Document written with ID: ", docRef.id);
+            game.id = docRef.id
+            db.collection("games").doc(game.id).update({
+                id: game.id
+            })
         })
         .catch(function (error) {
             console.error("Error adding document: ", error);
@@ -102,30 +130,72 @@ function getGame(id) {
 }
 
 
-// Classes
-class Game {
-    constructor(player1, player2) {
-        this.player1 = player1;
-        this.player2 = player2;
-    }
+// Visual update functions
+function updatePlayerList() {
+    $("#table-body").empty()
+    allPlayers.forEach(player => {
+        let name = $("<th>").text(player.name);
+        let wins = $("<th>").text(player.wins);
+        let losses = $("<th>").text(player.losses);
+        let button = $("<button>").text("Challenge").addClass("btn btn-primary player-challenge-button").attr("data-playerId", player.id)
+        let row = $("<tr>")
+        $("#table-body").append(row.append(name, wins, losses, button))
+    })
 }
 
-class Player {
-    constructor(name) {
-        this.name = name;
+
+// Initializers
+let db;
+let init = true;
+
+// Event Listeners
+$(document).ready(() => {
+    db = initDatabase()
+    db.collection("users").onSnapshot((snapshot) => {
+        let vals = snapshot.docChanges()
+        vals.forEach(change => {
+            // This handles on the inital load getting the players that are already in
+            if (init) {
+                let val = change.doc.data()
+                let newPlayer = new Player(val.name, val.id, val.wins, val.losses)
+                allPlayers.push(newPlayer)
+            }
+            // This handles bringing in any new players
+            if (change.type === `modified`) {
+                let val = change.doc.data()
+                let newPlayer = new Player(val.name, val.id, val.wins, val.losses)
+                allPlayers.push(newPlayer)
+            }
+        })
+        init = false;
+        updatePlayerList()
+    }, err => {
+        console.log(`Encountered error: ${err}`)
+    })
+})
+
+$("#start-button").on('click', (event) => {
+    event.preventDefault()
+    if ($("#username-text").val()) {
+        let name = $("#username-text").val()
+        $("#username-text").val("")
+        let player = new Player(name)
+        addUser(player)
+        $("#username-box").addClass("d-none")
+        $("#active-users").removeClass("d-none")
+
+    } else {
+        alert("Please enter a valid name")
     }
 
-}
+})
 
 
-// Initialize Database
-let db = initDatabase()
 
 
-// addUser("Vera", 15, "O")
-// addUser("Emile", 20, "X")
 
-// getUser('2rw16DBmoQ2SdnnGzy76')
+
+
 // User 1 goes to the website. They see a screen appear prompting them to input a username
 
 // The user inputs a username

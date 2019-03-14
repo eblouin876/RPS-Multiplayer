@@ -13,8 +13,35 @@
 
 <body>
     <div class='container'>
+        <div class="jumbotron text-center">
+            <h1>Welcome to Tic Tact Toe</h1>
+            <div id="username-box">
+                <h2>Enter a username below</h2>
+                <div class="input-group mb-3 mt-3">
+                    <input type="text" class="form-control" placeholder="Username" id="username-text">
+                    <div class>
+                        <button class="btn" type="submit" id="start-button">Start</button>
+                    </div>
+                </div>
+            </div>
+            <h2 id="variable-title" class="d-none">Select an opponent from the list below</h2>
+        </div>
+
         <div class='row'>
             <div class='col-12' id='main-box'>
+                <table class="table d-none" id="active-users">
+                    <thead>
+                        <tr>
+                            <th scope="col">Player Name</th>
+                            <th scope="col">Wins</th>
+                            <th scope="col">Losses</th>
+                            <th scope="col">Challenge</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+
+                    </tbody>
+                </table>
 
             </div>
         </div>
