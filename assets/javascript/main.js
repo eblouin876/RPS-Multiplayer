@@ -3,10 +3,10 @@ let allPlayers = {}
 
 // Classes
 class Game {
-    constructor(player1, player2, id, turn) {
+    constructor(player1, player2, id, turn, board = ["", "", "", "", "", "", "", "", ""]) {
         this.player1 = player1;
         this.player2 = player2;
-        this.board = ["", "", "", "", "", "", "", "", ""];
+        this.board = board;
         this.id = id;
         this.winner;
         this.turn = turn;
@@ -14,6 +14,7 @@ class Game {
 
     buildBoard() {
         let row = [];
+        $("#game-board").empty()
         $("#game-board").append($("<button>").addClass("btn btn-danger").attr("id", "end-button").text("End Game"));
         for (let i = 1; i <= this.board.length; i++) {
             let box = $("<div>").addClass("board-box").attr("id", `box-${i}`).attr("data-index", i - 1);
@@ -29,11 +30,64 @@ class Game {
                 row = [];
             }
         }
-        $(".board-box").on("click", function () {
-            // Make turn function goes here.
-        })
     }
 
+    checkWin() {
+        let Wins = [
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8],
+            [0, 4, 8],
+            [2, 4, 6]
+        ]
+
+        function findIndices(x, arr) {
+            var indices = [];
+            var idx = arr.indexOf(x);
+            while (idx != -1) {
+                indices.push(idx);
+                idx = arr.indexOf(x, idx + 1);
+            }
+            return indices
+        }
+
+        function contains(correct, board) {
+            correct.forEach(possible => {
+                let win = true;
+                possible.forEach(position => {
+                    if (board.indexOf(position) === -1) {
+                        win = false
+                    }
+                })
+                if (win) {
+                    return true
+                }
+            })
+        }
+
+        let yIndex = findIndices("Y", this.board)
+        let xIndex = findIndices("X", this.board)
+        let played = 0;
+        this.board.forEach(square => {
+            if (square === "Y" || square === "X") {
+                played++
+            }
+        })
+        console.log(Wins, xIndex, yIndex)
+        if (contains(Wins, xIndex)) {
+            this.winner = "X"
+            endGame()
+        } else if (contains(Wins, yIndex)) {
+            this.winner = "Y"
+            endGame()
+        } else if (played === 9) {
+            this.winner = "Tie"
+            endGame()
+        }
+    }
 }
 
 class Player {
@@ -42,9 +96,7 @@ class Player {
         this.id = id;
         this.wins = wins;
         this.losses = losses;
-        this.turn = false;
         this.letter;
-
     }
 
 }
@@ -110,18 +162,6 @@ function getUser(id) {
                 return newPlayer
             })
         })
-}
-
-function addGameListener(gameId) {
-    return db.collection("games").doc(gameId)
-        .onSnapshot((doc) => {
-            console.log("Current data: ", doc.data());
-        })
-}
-
-function removeGameListener(gameId) {
-    db.collection("games").doc(gameId)
-        .onSnapshot(() => {})
 }
 
 function addGame(game) {
@@ -208,10 +248,10 @@ function challenge() {
 
 function endGame() {
     let game = JSON.parse(sessionStorage.getItem("Game"))
-    if (game.winner === game.player1.id) {
+    if (game.winner === game.player1.letter) {
         game.player1.wins += 1;
         game.player2.losses += 1;
-    } else if (game.winner === game.player2.id) {
+    } else if (game.winner === game.player2.letter) {
         game.player1.losses += 1;
         game.player2.wins += 1;
     }
@@ -227,6 +267,26 @@ function endGame() {
     $("#active-users").removeClass("d-none");
 }
 
+function makeMove() {
+    let move = $(this).attr("data-index")
+    let rawgame = JSON.parse(sessionStorage.getItem("Game"))
+    let game = new Game(rawgame.player1, rawgame.player2, rawgame.id, rawgame.turn, rawgame.board)
+    if (sessionStorage.getItem("Id") === game.turn) {
+        if (!game.board[move]) {
+            game.board[move] = sessionStorage.getItem("Letter")
+            if (game.player1.id === game.turn) {
+                game.turn = game.player2.id
+            } else {
+                game.turn = game.player1.id
+            }
+            db.collection("games").doc(game.id).update({
+                turn: game.turn,
+                board: game.board
+            })
+            game.checkWin()
+        }
+    }
+}
 
 // Visual update functions
 function updatePlayerList() {
@@ -282,13 +342,23 @@ $(document).ready(() => {
             if (change.type === `modified`) {
                 let val = change.doc.data();
                 if (val.player1.id === sessionStorage.Id || val.player2.id === sessionStorage.Id) {
-                    let newGame = new Game(val.player1, val.player2, val.id, val.turn);
+                    let newGame = new Game(val.player1, val.player2, val.id, val.turn, val.board);
                     $("#active-users").addClass("d-none");
                     $("#variable-title")
                         .empty()
                         .append(`<h1>${val.player1.name} now playing ${val.player2.name}</h1>`);
+                    if (val.turn === sessionStorage.getItem("Id")) {
+                        $("#variable-title").append(`<h1>Your Turn</h1>`)
+                    } else {
+                        $("#variable-title").append(`<h1>Waiting for Other Player</h1>`)
+                    }
                     newGame.buildBoard();
                     sessionStorage.setItem("Game", JSON.stringify(newGame));
+                    if (sessionStorage.getItem("Id") === val.player1.id) {
+                        sessionStorage.setItem("Letter", val.player1.letter)
+                    } else {
+                        sessionStorage.setItem("Letter", val.player2.letter)
+                    }
                 }
             }
             if (change.type === `removed`) {
@@ -321,7 +391,7 @@ $(document).on('click', '.player-challenge-button', challenge);
 
 $(document).on('click', '#end-button', endGame);
 
-
+$(document).on('click', '.board-box', makeMove)
 
 
 
