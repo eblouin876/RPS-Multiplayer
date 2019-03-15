@@ -358,9 +358,7 @@ let init = true;
 // Event Listeners
 $(document).ready(() => {
     db = initDatabase()
-        .then(() => {
-            console.log(db)
-        })
+    console.log(db)
     db.collection("users").onSnapshot((snapshot) => {
         let vals = snapshot.docChanges();
         vals.forEach(change => {
