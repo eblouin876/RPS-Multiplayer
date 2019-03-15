@@ -295,6 +295,8 @@ function leave() {
             $(".container").empty()
         })
 }
+
+
 // Visual update functions
 function updatePlayerList() {
     getUsers()
