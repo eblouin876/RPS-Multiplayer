@@ -152,17 +152,6 @@ function getUsers() {
     });
 }
 
-function getUser(id) {
-    getUsers()
-        .then(() => {
-            db.collection("users").doc(id).get().then((querySnapshot) => {
-                let data = querySnapshot.data()
-                let newPlayer = new Player(data.name, data.id, data.wins, data.loss)
-                return newPlayer
-            })
-        })
-}
-
 function addGame(game) {
     let gameObj = JSON.parse(JSON.stringify(game))
     db.collection("games").add(gameObj)
@@ -175,27 +164,6 @@ function addGame(game) {
         .catch(function (error) {
             console.error("Error adding document: ", error);
         });
-}
-
-function getGames() {
-    return db.collection("games").get().then((querySnapshot) => {
-        querySnapshot.forEach((game) => {
-            let newGame = {};
-            let data = game.data()
-            newGame[game.id] = data
-            allGames.push(newGame)
-        });
-    });
-}
-
-function getGame(id) {
-    getGames()
-        .then(() => {
-            db.collection("games").doc(id).get().then((querySnapshot) => {
-                let data = querySnapshot.data()
-                console.log(data)
-            })
-        })
 }
 
 function removeUser(ID) {
@@ -328,6 +296,7 @@ function makeMove() {
     }
 }
 
+
 // Visual update functions
 function updatePlayerList() {
     getUsers()
@@ -342,6 +311,21 @@ function updatePlayerList() {
                 $("#table-body").append(row.append(name, wins, losses, button));
             })
         })
+}
+
+function start() {
+    event.preventDefault();
+    if ($("#username-text").val()) {
+        let name = $("#username-text").val();
+        $("#username-text").val("");
+        let player = new Player(name);
+        addUser(player);
+        $("#username-box").addClass("d-none");
+        $("#active-users").removeClass("d-none");
+        $("#variable-title").removeClass("d-none");
+    } else {
+        alert("Please enter a valid name");
+    }
 }
 
 
@@ -411,28 +395,15 @@ $(document).ready(() => {
     })
 })
 
-$("#start-button").on('click', (event) => {
-    event.preventDefault();
-    if ($("#username-text").val()) {
-        let name = $("#username-text").val();
-        $("#username-text").val("");
-        let player = new Player(name);
-        addUser(player);
-        $("#username-box").addClass("d-none");
-        $("#active-users").removeClass("d-none");
-        $("#variable-title").removeClass("d-none");
-
-    } else {
-        alert("Please enter a valid name");
-    }
-
-})
+$(document).on('click', '#start-button', start)
 
 $(document).on('click', '.player-challenge-button', challenge);
 
 $(document).on('click', '#end-button', endGame);
 
 $(document).on('click', '.board-box', makeMove)
+
+
 
 
 
