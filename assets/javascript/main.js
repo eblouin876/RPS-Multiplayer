@@ -3,12 +3,13 @@ let allPlayers = {}
 
 // Classes
 class Game {
-    constructor(player1, player2, id) {
+    constructor(player1, player2, id, turn) {
         this.player1 = player1;
         this.player2 = player2;
         this.board = ["", "", "", "", "", "", "", "", ""];
         this.id = id;
         this.winner;
+        this.turn = turn;
     }
 
     buildBoard() {
@@ -188,16 +189,19 @@ function challenge() {
         let id = $(this).attr("data-playerid");
         let player1 = allPlayers[id];
         let player2 = allPlayers[sessionStorage.Id];
+        let turn;
         if (Math.random() > .5) {
             player1.letter = "Y";
             player2.letter = "X";
+            turn = player1.id;
         } else {
             player1.letter = "X";
             player2.letter = "Y";
+            turn = player2.id;
         }
         removeUser($(this).attr("data-playerid"));
         removeUser();
-        let newGame = new Game(player1, player2);
+        let newGame = new Game(player1, player2, "", turn);
         addGame(newGame);
     }
 }
@@ -278,7 +282,7 @@ $(document).ready(() => {
             if (change.type === `modified`) {
                 let val = change.doc.data();
                 if (val.player1.id === sessionStorage.Id || val.player2.id === sessionStorage.Id) {
-                    let newGame = new Game(val.player1, val.player2, val.id);
+                    let newGame = new Game(val.player1, val.player2, val.id, val.turn);
                     $("#active-users").addClass("d-none");
                     $("#variable-title")
                         .empty()
@@ -287,7 +291,9 @@ $(document).ready(() => {
                     sessionStorage.setItem("Game", JSON.stringify(newGame));
                 }
             }
-            if (change.type === `removed`) {}
+            if (change.type === `removed`) {
+                endGame()
+            }
         })
     }, err => {
         console.log(`Encountered error: ${err}`);
@@ -314,6 +320,11 @@ $("#start-button").on('click', (event) => {
 $(document).on('click', '.player-challenge-button', challenge);
 
 $(document).on('click', '#end-button', endGame);
+
+
+
+
+
 
 // window.addEventListener("unload", function (e) {
 //     remove();
