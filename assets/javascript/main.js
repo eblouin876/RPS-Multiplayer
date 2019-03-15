@@ -355,9 +355,7 @@ $(document).ready(() => {
                 let newPlayer = new Player(val.name, val.id, val.wins, val.losses);
                 allPlayers[val.id] = newPlayer;
             }
-            if (change.type === `removed`) {
-                console.log("Goodbye")
-            }
+            if (change.type === `removed`) {}
         })
         init = false;
         updatePlayerList();
