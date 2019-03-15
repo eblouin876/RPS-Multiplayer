@@ -8,7 +8,7 @@ class Game {
         this.player2 = player2;
         this.board = board;
         this.id = id;
-        this.winner;
+        this.winner = "";
         this.turn = turn;
     }
 
@@ -78,8 +78,10 @@ class Game {
             }
         })
         if (contains(Wins, xIndex)) {
+            this.winner = "X"
             endGame("X")
         } else if (contains(Wins, yIndex)) {
+            this.winner = "Y"
             endGame("Y")
         } else if (played === 9) {
             endGame()
@@ -243,26 +245,66 @@ function challenge() {
     }
 }
 
-function endGame(winner) {
+function endGame(winner, final) {
     let game = JSON.parse(sessionStorage.getItem("Game"))
-    game.winner = winner
-    if (game.winner === game.player1.letter) {
-        game.player1.wins += 1;
-        game.player2.losses += 1;
-    } else if (game.winner === game.player2.letter) {
-        game.player1.losses += 1;
-        game.player2.wins += 1;
+    if (game) {
+
+        if (!final) {
+            if (winner === game.player1.letter) {
+                game.player1.wins += 1;
+                game.player2.losses += 1;
+                game.winner = game.player1.letter
+            } else if (winner === game.player2.letter) {
+                game.player1.losses += 1;
+                game.player2.wins += 1;
+                game.winner = game.player2.letter
+            }
+            db.collection("games").doc(game.id).update({
+                    player1: game.player1,
+                    player2: game.player2,
+                    // winner: game.winner
+                })
+                .then(() => {
+                    console.log("happening")
+                    if (game.player1.id === sessionStorage.getItem("Id")) {
+                        console.log("PlaYER1")
+                        addUser(game.player1);
+                        sessionStorage.removeItem("Id")
+                    } else if (game.player2.id === sessionStorage.getItem("Id")) {
+                        console.log("player2")
+                        addUser(game.player2);
+                        sessionStorage.removeItem("Id")
+                    }
+                    removeGame(game.id);
+                    sessionStorage.removeItem("Game");
+                    $("#variable-title")
+                        .empty()
+                        .append(`<h1>Choose an opponent from the list below</h1>`);
+                    $("#game-board").empty();
+                    updatePlayerList();
+                    $("#active-users").removeClass("d-none");
+                })
+        }
+        console.log("happening")
+        if (game.player1.id === sessionStorage.getItem("Id")) {
+            console.log("PlaYER1")
+            addUser(game.player1);
+            sessionStorage.removeItem("Id")
+        } else if (game.player2.id === sessionStorage.getItem("Id")) {
+            console.log("player2")
+            addUser(game.player2);
+            sessionStorage.removeItem("Id")
+        }
+        removeGame(game.id);
+        sessionStorage.removeItem("Game");
+        $("#variable-title")
+            .empty()
+            .append(`<h1>Choose an opponent from the list below</h1>`);
+        $("#game-board").empty();
+        updatePlayerList();
+        $("#active-users").removeClass("d-none");
+
     }
-    addUser(game.player1);
-    addUser(game.player2);
-    removeGame(game.id);
-    sessionStorage.removeItem("Game");
-    $("#variable-title")
-        .empty()
-        .append(`<h1>Choose an opponent from the list below</h1>`);
-    $("#game-board").empty();
-    updatePlayerList();
-    $("#active-users").removeClass("d-none");
 }
 
 function makeMove() {
@@ -360,7 +402,8 @@ $(document).ready(() => {
                 }
             }
             if (change.type === `removed`) {
-                endGame()
+                console.log(change.doc.data().winner)
+                endGame(change.doc.data().winner, true)
             }
         })
     }, err => {
