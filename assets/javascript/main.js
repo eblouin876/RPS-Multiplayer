@@ -292,7 +292,7 @@ function makeMove() {
 function leave() {
     removeUser()
         .then(() => {
-            window.close()
+            $(".container").empty()
         })
 }
 // Visual update functions
