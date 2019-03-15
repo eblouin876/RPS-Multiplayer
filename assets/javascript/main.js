@@ -320,16 +320,32 @@ function updatePlayerList() {
 
 function start() {
     event.preventDefault();
-    if ($("#username-text").val()) {
-        let name = $("#username-text").val();
-        $("#username-text").val("");
-        let player = new Player(name);
-        addUser(player);
-        $("#username-box").addClass("d-none");
-        $("#active-users").removeClass("d-none");
-        $("#variable-title").removeClass("d-none");
+    if (event.key) {
+        if (event.key === "Enter") {
+            if ($("#username-text").val()) {
+                let name = $("#username-text").val();
+                $("#username-text").val("");
+                let player = new Player(name);
+                addUser(player);
+                $("#username-box").addClass("d-none");
+                $("#active-users").removeClass("d-none");
+                $("#variable-title").removeClass("d-none");
+            } else {
+                alert("Please enter a valid name");
+            }
+        }
     } else {
-        alert("Please enter a valid name");
+        if ($("#username-text").val()) {
+            let name = $("#username-text").val();
+            $("#username-text").val("");
+            let player = new Player(name);
+            addUser(player);
+            $("#username-box").addClass("d-none");
+            $("#active-users").removeClass("d-none");
+            $("#variable-title").removeClass("d-none");
+        } else {
+            alert("Please enter a valid name");
+        }
     }
 }
 
@@ -409,7 +425,7 @@ $(document).on('click', '.board-box', makeMove)
 
 $(document).on('click', '.player-leave-button', leave)
 
-
+$(document).on('keyup', '#username-text', start)
 
 
 // window.addEventListener("unload", function (e) {
