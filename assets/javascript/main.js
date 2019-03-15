@@ -55,17 +55,18 @@ class Game {
         }
 
         function contains(correct, board) {
-            correct.forEach(possible => {
+            for (let i = 0; i < correct.length; i++) {
                 let win = true;
-                possible.forEach(position => {
-                    if (board.indexOf(position) === -1) {
+                for (let j = 0; j < correct[i].length; j++) {
+                    if (board.indexOf(correct[i][j]) === -1) {
                         win = false
                     }
-                })
+                }
                 if (win) {
+                    console.log(win)
                     return true
                 }
-            })
+            }
         }
 
         let yIndex = findIndices("Y", this.board)
@@ -76,15 +77,11 @@ class Game {
                 played++
             }
         })
-        console.log(Wins, xIndex, yIndex)
         if (contains(Wins, xIndex)) {
-            this.winner = "X"
-            endGame()
+            endGame("X")
         } else if (contains(Wins, yIndex)) {
-            this.winner = "Y"
-            endGame()
+            endGame("Y")
         } else if (played === 9) {
-            this.winner = "Tie"
             endGame()
         }
     }
@@ -246,8 +243,9 @@ function challenge() {
     }
 }
 
-function endGame() {
+function endGame(winner) {
     let game = JSON.parse(sessionStorage.getItem("Game"))
+    game.winner = winner
     if (game.winner === game.player1.letter) {
         game.player1.wins += 1;
         game.player2.losses += 1;
