@@ -63,7 +63,6 @@ class Game {
                     }
                 }
                 if (win) {
-                    console.log(win)
                     return true
                 }
             }
@@ -173,7 +172,7 @@ function removeUser(ID) {
     } else {
         id = sessionStorage.Id
     }
-    db.collection('users').doc(id).get()
+    return db.collection('users').doc(id).get()
         .then(function (querySnapshot) {
             querySnapshot.ref.delete();
         });
@@ -233,13 +232,10 @@ function endGame(winner, final) {
                     // winner: game.winner
                 })
                 .then(() => {
-                    console.log("happening")
                     if (game.player1.id === sessionStorage.getItem("Id")) {
-                        console.log("PlaYER1")
                         addUser(game.player1);
                         sessionStorage.removeItem("Id")
                     } else if (game.player2.id === sessionStorage.getItem("Id")) {
-                        console.log("player2")
                         addUser(game.player2);
                         sessionStorage.removeItem("Id")
                     }
@@ -253,13 +249,10 @@ function endGame(winner, final) {
                     $("#active-users").removeClass("d-none");
                 })
         }
-        console.log("happening")
         if (game.player1.id === sessionStorage.getItem("Id")) {
-            console.log("PlaYER1")
             addUser(game.player1);
             sessionStorage.removeItem("Id")
         } else if (game.player2.id === sessionStorage.getItem("Id")) {
-            console.log("player2")
             addUser(game.player2);
             sessionStorage.removeItem("Id")
         }
@@ -296,7 +289,12 @@ function makeMove() {
     }
 }
 
-
+function leave() {
+    removeUser()
+        .then(() => {
+            window.close()
+        })
+}
 // Visual update functions
 function updatePlayerList() {
     getUsers()
@@ -306,7 +304,12 @@ function updatePlayerList() {
                 let name = $("<th>").text(value.name);
                 let wins = $("<th>").text(value.wins);
                 let losses = $("<th>").text(value.losses);
-                let button = $("<button>").text("Challenge").addClass("btn btn-primary player-challenge-button").attr("data-playerId", value.id);
+                let button;
+                if (value.id !== sessionStorage.getItem("Id")) {
+                    button = $("<button>").text("Challenge").addClass("btn btn-primary player-challenge-button").attr("data-playerId", value.id);
+                } else {
+                    button = $("<button>").text("Leave").addClass("btn btn-danger player-leave-button").attr("data-playerId", value.id);
+                }
                 let row = $("<tr>");
                 $("#table-body").append(row.append(name, wins, losses, button));
             })
@@ -352,7 +355,9 @@ $(document).ready(() => {
                 let newPlayer = new Player(val.name, val.id, val.wins, val.losses);
                 allPlayers[val.id] = newPlayer;
             }
-            if (change.type === `removed`) {}
+            if (change.type === `removed`) {
+                console.log("Goodbye")
+            }
         })
         init = false;
         updatePlayerList();
@@ -386,7 +391,6 @@ $(document).ready(() => {
                 }
             }
             if (change.type === `removed`) {
-                console.log(change.doc.data().winner)
                 endGame(change.doc.data().winner, true)
             }
         })
@@ -403,7 +407,7 @@ $(document).on('click', '#end-button', endGame);
 
 $(document).on('click', '.board-box', makeMove)
 
-
+$(document).on('click', '.player-leave-button', leave)
 
 
 
