@@ -2,3 +2,27 @@
     background-color: white;
     border: .5px solid #ccc;
 }
+
+.board-box {
+    width: 15vw;
+    height: 15vh;
+}
+
+#box-4,
+#box-5,
+#box-6 {
+    border-bottom: 1px solid black;
+    border-top: 1px solid black;
+}
+
+#box-2,
+#box-5,
+#box-8 {
+    border-right: 1px solid black;
+    border-left: 1px solid black;
+}
+
+.play {
+    margin-top: 25%;
+    font-size: 4rem;
+}

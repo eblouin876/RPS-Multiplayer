@@ -1,14 +1,38 @@
 // Global Variables
-let allPlayers = []
-let allGames = []
-
+let allPlayers = {}
 
 // Classes
 class Game {
-    constructor(player1, player2) {
+    constructor(player1, player2, id) {
         this.player1 = player1;
         this.player2 = player2;
+        this.board = ["", "", "", "", "", "", "", "", ""];
+        this.id = id;
+        this.winner;
     }
+
+    buildBoard() {
+        let row = [];
+        $("#game-board").append($("<button>").addClass("btn btn-danger").attr("id", "end-button").text("End Game"));
+        for (let i = 1; i <= this.board.length; i++) {
+            let box = $("<div>").addClass("board-box").attr("id", `box-${i}`).attr("data-index", i - 1);
+            let play = $("<h1>").addClass("play").text(this.board[i - 1]);
+            box.append(play);
+            row.push(box);
+            if (i % 3 === 0) {
+                let rowDiv = $("<div>").addClass("row").attr("id", `row-${i}`);
+                row.forEach(box => {
+                    rowDiv.append(box);
+                })
+                $("#game-board").append(rowDiv);
+                row = [];
+            }
+        }
+        $(".board-box").on("click", function () {
+            // Make turn function goes here.
+        })
+    }
+
 }
 
 class Player {
@@ -17,6 +41,8 @@ class Player {
         this.id = id;
         this.wins = wins;
         this.losses = losses;
+        this.turn = false;
+
     }
 
 }
@@ -63,12 +89,13 @@ function addUser(player) {
 
 function getUsers() {
     return db.collection("users").get().then((querySnapshot) => {
+        let users = []
         querySnapshot.forEach((usr) => {
-            let newUser = {};
             let data = usr.data()
-            newUser[usr.id] = data
-            allPlayers.push(newUser)
+            let newUser = data;
+            users.push(newUser)
         });
+        return users
     });
 }
 
@@ -77,7 +104,8 @@ function getUser(id) {
         .then(() => {
             db.collection("users").doc(id).get().then((querySnapshot) => {
                 let data = querySnapshot.data()
-                console.log(data)
+                let newPlayer = new Player(data.name, data.id, data.wins, data.loss)
+                return newPlayer
             })
         })
 }
@@ -129,32 +157,86 @@ function getGame(id) {
         })
 }
 
-function remove() {
-    let id = sessionStorage.getItem("Id")
+function removeUser(ID) {
+    let id;
+    if (ID) {
+        id = ID
+    } else {
+        id = sessionStorage.Id
+    }
     db.collection('users').doc(id).get()
         .then(function (querySnapshot) {
             querySnapshot.ref.delete();
         });
-};
+}
+
+function removeGame(ID) {
+    if (ID) {
+        id = ID
+    } else {
+        id = JSON.parse(sessionStorage.getItem("Game")).id
+    }
+    db.collection('games').doc(id).get()
+        .then(function (querySnapshot) {
+            querySnapshot.ref.delete();
+        });
+}
+
+function challenge() {
+    if ($(this).attr("data-playerid") !== sessionStorage.Id) {
+        let id = $(this).attr("data-playerid")
+        let player1 = allPlayers[id]
+        let player2 = allPlayers[sessionStorage.Id]
+        removeUser($(this).attr("data-playerid"))
+        removeUser()
+        let newGame = new Game(player1, player2)
+        addGame(newGame)
+    }
+}
+
+function endGame() {
+    let game = JSON.parse(sessionStorage.getItem("Game"))
+    if (game.winner === game.player1.id) {
+        game.player1.wins += 1
+        game.player2.losses += 1
+    } else if (game.winner === game.player2.id) {
+        game.player1.losses += 1
+        game.player2.wins += 1
+    }
+    addUser(game.player1)
+    addUser(game.player2)
+    removeGame(game.id)
+    sessionStorage.removeItem("Game")
+    $("#variable-title")
+        .empty()
+        .append(`<h1>Choose an opponent from the list below</h1>`)
+    $("#game-board").empty()
+    updatePlayerList()
+    $("#active-users").removeClass("d-none")
+}
 
 
 // Visual update functions
 function updatePlayerList() {
-    $("#table-body").empty()
-    allPlayers.forEach(player => {
-        let name = $("<th>").text(player.name);
-        let wins = $("<th>").text(player.wins);
-        let losses = $("<th>").text(player.losses);
-        let button = $("<button>").text("Challenge").addClass("btn btn-primary player-challenge-button").attr("data-playerId", player.id)
-        let row = $("<tr>")
-        $("#table-body").append(row.append(name, wins, losses, button))
-    })
+    getUsers()
+        .then((allPlayers) => {
+            $("#table-body").empty()
+            allPlayers.forEach(value => {
+                let name = $("<th>").text(value.name);
+                let wins = $("<th>").text(value.wins);
+                let losses = $("<th>").text(value.losses);
+                let button = $("<button>").text("Challenge").addClass("btn btn-primary player-challenge-button").attr("data-playerId", value.id)
+                let row = $("<tr>")
+                $("#table-body").append(row.append(name, wins, losses, button))
+            })
+        })
 }
 
 
 // Initializers
 let db;
 let init = true;
+
 
 // Event Listeners
 $(document).ready(() => {
@@ -166,20 +248,41 @@ $(document).ready(() => {
             if (init) {
                 let val = change.doc.data()
                 let newPlayer = new Player(val.name, val.id, val.wins, val.losses)
-                allPlayers.push(newPlayer)
+                allPlayers[val.id] = newPlayer
             }
             // This handles bringing in any new players
             if (change.type === `modified`) {
                 let val = change.doc.data()
                 let newPlayer = new Player(val.name, val.id, val.wins, val.losses)
-                allPlayers.push(newPlayer)
+                allPlayers[val.id] = newPlayer
+            }
+            if (change.type === `removed`) {}
+        })
+        init = false;
+        updatePlayerList()
+    }, err => {
+        console.log(`Encountered error: ${err}`)
+    })
+    db.collection("games").onSnapshot((snapshot) => {
+        let vals = snapshot.docChanges()
+        vals.forEach(change => {
+            // This handles bringing in any new players
+            if (change.type === `modified`) {
+                let val = change.doc.data()
+                if (val.player1.id === sessionStorage.Id || val.player2.id === sessionStorage.Id) {
+                    let newGame = new Game(val.player1, val.player2, val.id)
+                    $("#active-users").addClass("d-none")
+                    $("#variable-title")
+                        .empty()
+                        .append(`<h1>${val.player1.name} now playing ${val.player2.name}</h1>`)
+                    newGame.buildBoard()
+                    sessionStorage.setItem("Game", JSON.stringify(newGame))
+                }
             }
             if (change.type === `removed`) {
                 console.log(change.doc.data())
             }
         })
-        init = false;
-        updatePlayerList()
     }, err => {
         console.log(`Encountered error: ${err}`)
     })
@@ -194,6 +297,7 @@ $("#start-button").on('click', (event) => {
         addUser(player)
         $("#username-box").addClass("d-none")
         $("#active-users").removeClass("d-none")
+        $("#variable-title").removeClass("d-none")
 
     } else {
         alert("Please enter a valid name")
@@ -201,11 +305,15 @@ $("#start-button").on('click', (event) => {
 
 })
 
-window.addEventListener('unload', function (e) {
-    remove()
-});
+$(document).on('click', '.player-challenge-button', challenge)
 
+$(document).on('click', '#end-button', endGame)
 
+// window.addEventListener("unload", function (e) {
+//     remove();
+//     (e || window.event).returnValue = remove(); //Gecko + IE
+//     return remove(); //Webkit, Safari, Chrome
+// });
 
 
 
