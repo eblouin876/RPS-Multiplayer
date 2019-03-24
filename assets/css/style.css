@@ -3,26 +3,8 @@
     border: .5px solid #ccc;
 }
 
-#box-4,
-#box-5,
-#box-6 {
-    border-bottom: 1px solid black;
-    border-top: 1px solid black;
-}
-
-#box-2,
-#box-5,
-#box-8 {
-    border-right: 1px solid black;
-    border-left: 1px solid black;
-}
-
 .play {
     font-size: 4rem;
-}
-
-.board-box {
-    display: grid;
 }
 
 .center {
@@ -30,6 +12,7 @@
     align-self: center;
 }
 
+/* Styling for the board box utilizing CSS Grid */
 .wrapper {
     display: grid;
     grid-template-columns: 10% repeat(3, 1fr) 10%;
@@ -38,6 +21,10 @@
         ". box1 box2 box3 ."
         ". box4 box5 box6 ."
         ". box7 box8 box9 .";
+}
+
+.board-box {
+    display: grid;
 }
 
 #box-1 {
@@ -74,4 +61,18 @@
 
 #box-9 {
     grid-area: box9;
+}
+
+#box-4,
+#box-5,
+#box-6 {
+    border-bottom: 1px solid black;
+    border-top: 1px solid black;
+}
+
+#box-2,
+#box-5,
+#box-8 {
+    border-right: 1px solid black;
+    border-left: 1px solid black;
 }
