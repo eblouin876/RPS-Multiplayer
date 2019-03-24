@@ -13,22 +13,23 @@ class Game {
     }
 
     buildBoard() {
-        let row = [];
+        // let row = [];
         $("#game-board").empty()
         $("#game-board").append($("<button>").addClass("btn btn-danger").attr("id", "end-button").text("End Game"));
         for (let i = 1; i <= this.board.length; i++) {
             let box = $("<div>").addClass("board-box").attr("id", `box-${i}`).attr("data-index", i - 1);
-            let play = $("<h1>").addClass("play").text(this.board[i - 1]);
+            let play = $("<h1>").addClass("play center").text(this.board[i - 1]);
             box.append(play);
-            row.push(box);
-            if (i % 3 === 0) {
-                let rowDiv = $("<div>").addClass("row").attr("id", `row-${i}`);
-                row.forEach(box => {
-                    rowDiv.append(box);
-                })
-                $("#game-board").append(rowDiv);
-                row = [];
-            }
+            // row.push(box);
+            $("#game-board").append(box)
+            // if (i % 3 === 0) {
+            //     let rowDiv = $("<div>").addClass("row").attr("id", `row-${i}`);
+            //     row.forEach(box => {
+            //         rowDiv.append(box);
+            //     })
+            //     $("#game-board").append(rowDiv);
+            //     row = [];
+            // }
         }
     }
 
@@ -433,23 +434,3 @@ $(document).on('keyup', '#username-text', start)
 //     (e || window.event).returnValue = remove(); //Gecko + IE
 //     return remove(); //Webkit, Safari, Chrome
 // });
-
-
-
-// User 1 goes to the website. They see a screen appear prompting them to input a username
-
-// The user inputs a username
-
-// The screen changes. Now the user sees a list of other active users. The instructions say to choose an opponent to play
-
-// They click on an opponent, and the opponent is prompted asking if they want to play
-
-// Player accepts, and the scene changes
-
-// Player one clicks "rock", and the screen displays waiting
-
-// Player two clicks "scissors", and the results are shown on the screen
-
-// Both players are prompted to play again
-
-// Both players say yes and a new round begins
