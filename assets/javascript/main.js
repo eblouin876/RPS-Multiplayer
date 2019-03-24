@@ -15,21 +15,12 @@ class Game {
     buildBoard() {
         // let row = [];
         $("#game-board").empty()
-        $("#game-board").append($("<button>").addClass("btn btn-danger").attr("id", "end-button").text("End Game"));
+        $("#variable-title").append($("<button>").addClass("btn btn-danger").attr("id", "end-button").text("End Game"));
         for (let i = 1; i <= this.board.length; i++) {
             let box = $("<div>").addClass("board-box").attr("id", `box-${i}`).attr("data-index", i - 1);
             let play = $("<h1>").addClass("play center").text(this.board[i - 1]);
             box.append(play);
-            // row.push(box);
             $("#game-board").append(box)
-            // if (i % 3 === 0) {
-            //     let rowDiv = $("<div>").addClass("row").attr("id", `row-${i}`);
-            //     row.forEach(box => {
-            //         rowDiv.append(box);
-            //     })
-            //     $("#game-board").append(rowDiv);
-            //     row = [];
-            // }
         }
     }
 
@@ -331,6 +322,7 @@ function start() {
                 $("#username-box").addClass("d-none");
                 $("#active-users").removeClass("d-none");
                 $("#variable-title").removeClass("d-none");
+                $("#welcome").remove()
             } else {
                 alert("Please enter a valid name");
             }
@@ -344,6 +336,7 @@ function start() {
             $("#username-box").addClass("d-none");
             $("#active-users").removeClass("d-none");
             $("#variable-title").removeClass("d-none");
+            $("#welcome").remove()
         } else {
             alert("Please enter a valid name");
         }
@@ -388,11 +381,17 @@ $(document).ready(() => {
             if (change.type === `modified`) {
                 let val = change.doc.data();
                 if (val.player1.id === sessionStorage.Id || val.player2.id === sessionStorage.Id) {
+                    let opponent = ""
+                    if (val.player1.id === sessionStorage.Id) {
+                        opponent = val.player2.name
+                    } else {
+                        opponent = val.player1.name
+                    }
                     let newGame = new Game(val.player1, val.player2, val.id, val.turn, val.board);
                     $("#active-users").addClass("d-none");
                     $("#variable-title")
                         .empty()
-                        .append(`<h1>${val.player1.name} now playing ${val.player2.name}</h1>`);
+                        .append(`<h1>Now playing ${opponent}</h1>`);
                     if (val.turn === sessionStorage.getItem("Id")) {
                         $("#variable-title").append(`<h1>Your Turn</h1>`)
                     } else {
