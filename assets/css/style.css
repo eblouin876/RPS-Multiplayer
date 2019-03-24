@@ -3,9 +3,64 @@
     border: .5px solid #ccc;
 }
 
+.play {
+    font-size: 4rem;
+}
+
+.center {
+    justify-self: center;
+    align-self: center;
+}
+
+/* Styling for the board box utilizing CSS Grid */
+.wrapper {
+    display: grid;
+    grid-template-columns: 10% repeat(3, 1fr) 10%;
+    grid-auto-rows: calc(100vh / 6);
+    grid-template-areas:
+        ". box1 box2 box3 ."
+        ". box4 box5 box6 ."
+        ". box7 box8 box9 .";
+}
+
 .board-box {
-    width: 15vw;
-    height: 15vh;
+    display: grid;
+}
+
+#box-1 {
+    grid-area: box1;
+}
+
+#box-2 {
+    grid-area: box2;
+}
+
+#box-3 {
+    grid-area: box3;
+}
+
+#box-4 {
+    grid-area: box4;
+}
+
+#box-5 {
+    grid-area: box5;
+}
+
+#box-6 {
+    grid-area: box6;
+}
+
+#box-7 {
+    grid-area: box7;
+}
+
+#box-8 {
+    grid-area: box8;
+}
+
+#box-9 {
+    grid-area: box9;
 }
 
 #box-4,
@@ -20,9 +75,4 @@
 #box-8 {
     border-right: 1px solid black;
     border-left: 1px solid black;
-}
-
-.play {
-    margin-top: 25%;
-    font-size: 4rem;
 }
