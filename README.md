@@ -24,3 +24,9 @@ This project is part of a web development program I am currently enrolled in and
 * Better responsiveness for mobile
 * Redesign using CSS grid or higher level manipulation with bootstrap
 * Figure out how to run the leave game function when the user closes the tab so they are removed from the lobby. (there could be a way to do this server side which also may be worth exploring)
+
+
+## Updates
+* Added responsiveness for mobile
+* Added CSS grid to hand the board
+* Still looking for a browser side solution to removing the player from the game. Do web workers continue to run in the background until they complete their task on close? Could be a solution
